@@ -19,30 +19,94 @@ namespace UploadCsv.Models
                 ConnectionString = WebConfigurationManager.ConnectionStrings["CsvDbConn"].ConnectionString;
             }
         }
+
+        public CsvFile DownloadCsvFile(int? id)
+        {
+            CsvFile csvFile;
+
+            using (SqlConnection con = new SqlConnection(ConnectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand())
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.CommandText = "GetCsvFile";
+                    cmd.Parameters.AddWithValue("@id", id);
+                    cmd.Connection = con;
+                    con.Open();
+                    using (SqlDataReader sdr = cmd.ExecuteReader())
+                    {
+                        sdr.Read();
+                        byte[] bytes = (byte[])sdr["FileContent"];
+                        string contentType = sdr["ContentType"].ToString();
+                        string fileName = sdr["FileName"].ToString();
+                        csvFile = new CsvFile(fileName, contentType, bytes);
+                    }
+                    con.Close();
+                }
+            }
+
+            return csvFile;
+        }
+
         public void AddCsvFile(CsvFile csvFile)
         {
-            using (SqlConnection sql = new SqlConnection())
+            using (SqlConnection con = new SqlConnection(this.ConnectionString))
             {
-                sql.ConnectionString = this.ConnectionString;
+                using (SqlCommand cmd = new SqlCommand())
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.CommandText = "AddCsvFile";
+                    cmd.Connection = con;
 
-                SqlCommand cmd = sql.CreateCommand();
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandText = "AddCsvFile";
+                    string fileName = csvFile.FileName;
+                    string contentType = csvFile.ContentType;
+                    byte[] fileContent = csvFile.FileContent;
 
-                string fileName = csvFile.FileName;
-                byte[] fileContent = csvFile.FileContent;
+                    SqlParameter paramFileName = cmd.Parameters.AddWithValue("@fileName", fileName);
+                    paramFileName.SqlDbType = SqlDbType.NVarChar;
+                    paramFileName.Size = 128;
 
-                SqlParameter paramFileName = cmd.Parameters.AddWithValue("@fileName", fileName);
-                paramFileName.SqlDbType = SqlDbType.NVarChar;
-                paramFileName.Size = 128;
+                    SqlParameter paramCoontentType = cmd.Parameters.AddWithValue("@contentType", contentType);
+                    paramFileName.SqlDbType = SqlDbType.NVarChar;
+                    paramFileName.Size = 128;
 
-                SqlParameter paramFileContent = cmd.Parameters.AddWithValue("@fileContent", fileContent);
-                paramFileContent.SqlDbType = SqlDbType.VarBinary;
-                paramFileContent.Size = fileContent.Length;
+                    SqlParameter paramFileContent = cmd.Parameters.AddWithValue("@fileContent", fileContent);
+                    paramFileContent.SqlDbType = SqlDbType.VarBinary;
+                    paramFileContent.Size = fileContent.Length;
 
-                sql.Open();
-                cmd.ExecuteScalar();
+                    con.Open();
+                    cmd.ExecuteScalar();
+                }
             }
+        }
+
+        public List<CsvFile> GetFiles()
+        {
+            List<CsvFile> files = new List<CsvFile>();
+
+            using (SqlConnection con = new SqlConnection(this.ConnectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand())
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.CommandText = "GetCsvFiles";
+
+                    cmd.Connection = con;
+                    con.Open();
+                    using (SqlDataReader sdr = cmd.ExecuteReader())
+                    {
+                        while (sdr.Read())
+                        {
+                            int id = Convert.ToInt32(sdr["Id"]);
+                            string fileName = sdr["FileName"].ToString();
+                            string contentType = sdr["ContentType"].ToString();
+                            DateTime lastModified = Convert.ToDateTime(sdr["LastModified"]);
+                            files.Add(new CsvFile(id, fileName, contentType, lastModified));
+                        }
+                    }
+                }
+            }
+            return files;
         }
     }
 }

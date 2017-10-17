@@ -178,6 +178,8 @@
     <Content Include="Scripts\respond.min.js" />
     <Content Include="Sql\AddCsvFile.sql" />
     <Content Include="Sql\CsvFile.Sql" />
+    <Content Include="Sql\GetCsvFile.sql" />
+    <Content Include="Sql\GetCsvFiles.sql" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>

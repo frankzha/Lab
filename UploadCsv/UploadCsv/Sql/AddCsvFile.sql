@@ -13,10 +13,11 @@ DROP PROCEDURE [dbo].[AddCsvFile];
 GO
 CREATE PROCEDURE [dbo].[AddCsvFile]
 	@fileName nvarchar(128),
+	@contentType nvarchar(128),
 	@fileContent varbinary(MAX)
 AS
 	INSERT INTO dbo.CsvFile
-	([FileName], [FileContent])
+	([FileName], [ContentType], [FileContent])
 	VALUES
-	(@fileName, @fileContent)
+	(@fileName, @contentType, @fileContent)
 RETURN 0

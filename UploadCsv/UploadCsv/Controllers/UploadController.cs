@@ -14,13 +14,23 @@ namespace UploadCsv.Controllers
         // GET: Upload
         public ActionResult Index()
         {
-            return View();
+            CsvFileDal dal = new CsvFileDal();
+            return View(dal.GetFiles());
+        }
+
+        [HttpPost]
+        public FileResult DownloadFile(int? fileId)
+        {
+            CsvFileDal dal = new CsvFileDal();
+            CsvFile csvFile = dal.DownloadCsvFile(fileId);
+            return File(csvFile.FileContent, csvFile.ContentType, csvFile.FileName);
         }
 
         [HttpGet]
         public ActionResult UploadFile()
         {
-            return View();
+            CsvFileDal dal = new CsvFileDal();
+            return View(dal.GetFiles());
         }
 
         [HttpPost]
@@ -31,18 +41,18 @@ namespace UploadCsv.Controllers
                 IList<string> lines = new List<string>();
                 string content = "";
                 string result = "And it doesn't contain cycle. ";
+                CsvFileDal dal = new CsvFileDal();
 
                 if (file.ContentLength > 0)
                 {
                     string fileName = Path.GetFileName(file.FileName);
-
+                    string contentType = file.ContentType;
                     byte[] bytes = new byte[file.ContentLength];
                     file.InputStream.Read(bytes, 0, file.ContentLength);
 
                     content = Encoding.UTF8.GetString(bytes);
 
-                    CsvFile csvFile = new CsvFile(file.FileName, bytes);
-                    CsvFileDal dal = new CsvFileDal();
+                    CsvFile csvFile = new CsvFile(file.FileName, contentType, bytes);
                     dal.AddCsvFile(csvFile);
 
                     bool b = DirectedGraphUtil.DirectedGraphHasCycle(content);
@@ -52,8 +62,8 @@ namespace UploadCsv.Controllers
                     }                    
                 }
 
-                ViewBag.Message = "File Uploaded Successfully!! " + result + content;
-                return View();
+                ViewBag.Message = "File Uploaded Successfully!! " + result;
+                return View(dal.GetFiles());
             }
             catch (Exception e)
             {
