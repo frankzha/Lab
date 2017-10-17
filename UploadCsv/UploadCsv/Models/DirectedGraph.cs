@@ -29,36 +29,44 @@ namespace UploadCsv.Models
 
         bool IsCyclic(string vertex, Dictionary<string, bool> visited, Dictionary<string, bool> recStack)
         {
-            visited[vertex] = true;
-            recStack[vertex] = true;
-
-            if (this.adjacent.ContainsKey(vertex))
+            if (visited.ContainsKey(vertex) == false || visited[vertex] == false)
             {
-                foreach (string adj in this.adjacent[vertex])
+                visited[vertex] = true;
+                recStack[vertex] = true;
+
+                if (this.adjacent.ContainsKey(vertex))
                 {
-                    if (!visited.ContainsKey(adj) || !visited[adj])
+                    foreach (string adj in this.adjacent[vertex])
                     {
-                        return IsCyclic(adj, visited, recStack);
-                    }
-                    else if (recStack.ContainsKey(adj) && recStack[adj])
-                    {
-                        return true;
+                        if (!visited.ContainsKey(adj) || !visited[adj])
+                        {
+                            return IsCyclic(adj, visited, recStack);
+                        }
+                        else if (recStack.ContainsKey(adj) && recStack[adj])
+                        {
+                            return true;
+                        }
                     }
                 }
             }
-
+            recStack[vertex] = false;
             return false;
         }
 
         public bool IsCyclic()
         {
             Dictionary<string, bool> visited = new Dictionary<string, bool>();
+            Dictionary<string, bool> recStack = new Dictionary<string, bool>();
+            foreach (string vertex in this.adjacent.Keys)
+            {
+                visited[vertex] = false;
+                recStack[vertex] = false;
+            }
 
             foreach (string vertex in this.adjacent.Keys)
             {
                 if (!visited.ContainsKey(vertex) || !visited[vertex])
                 {
-                    Dictionary<string, bool> recStack = new Dictionary<string, bool>();
                     if (this.IsCyclic(vertex, visited, recStack))
                     {
                         return true;
