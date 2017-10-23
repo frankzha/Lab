@@ -2,74 +2,86 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Web;
 using System.Web.Mvc;
+using UploadCsv.DAL;
 using UploadCsv.Models;
 
 namespace UploadCsv.Controllers
 {
     public class UploadController : Controller
     {
-        // GET: Upload
-        public ActionResult Index()
-        {
-            CsvFileDal dal = new CsvFileDal();
-            return View(dal.GetFiles());
-        }
+        CsvContext db = new CsvContext();
 
         [HttpPost]
-        public FileResult DownloadFile(int? fileId)
+        public ActionResult DownloadFile(IList<int> fileIds)
         {
-            CsvFileDal dal = new CsvFileDal();
-            CsvFile csvFile = dal.DownloadCsvFile(fileId);
-            return File(csvFile.FileContent, csvFile.ContentType, csvFile.FileName);
+            if (fileIds != null)
+            {
+                string contentType="";
+                string fileName="";
+
+                IList<CsvFile> csvFiles = db.CsvFiles.Where(f => fileIds.Contains(f.Id)).ToList();
+                IList<CsvRecord> csvRecords = db.CsvRecords.Where(r => fileIds.Contains(r.Id)).ToList();
+                if (csvFiles != null && csvFiles.Count > 0)
+                {
+                    Stream stream = CsvFileDal.ConstructCsvFiles(csvFiles, ref contentType, ref fileName);
+                    return File(stream, contentType, fileName);
+                }
+            }
+
+            return RedirectToAction("UploadFile");
         }
 
         [HttpGet]
         public ActionResult UploadFile()
         {
-            CsvFileDal dal = new CsvFileDal();
-            return View(dal.GetFiles());
+            return View(db.CsvFiles);
         }
 
         [HttpPost]
-        public ActionResult UploadFile(HttpPostedFileBase file)
+        public ActionResult UploadFile(IEnumerable<HttpPostedFileBase> files)
         {
-            try
-            {
-                IList<string> lines = new List<string>();
-                string content = "";
-                string result = "And it doesn't contain cycle. ";
-                CsvFileDal dal = new CsvFileDal();
+            StringBuilder status = new StringBuilder();
 
-                if (file.ContentLength > 0)
+            if (files != null && files.Count() > 0)
+            {
+                foreach (HttpPostedFileBase file in files)
                 {
-                    string fileName = Path.GetFileName(file.FileName);
-                    string contentType = file.ContentType;
-                    byte[] bytes = new byte[file.ContentLength];
-                    file.InputStream.Read(bytes, 0, file.ContentLength);
+                    if (file == null) continue;
 
-                    content = Encoding.UTF8.GetString(bytes);
-
-                    CsvFile csvFile = new CsvFile(file.FileName, contentType, bytes);
-                    dal.AddCsvFile(csvFile);
-
-                    bool b = DirectedGraphUtil.DirectedGraphHasCycle(content);
-                    if (b)
+                    try
                     {
-                        result = "But it contains cycle. ";
-                    }                    
-                }
+                        CsvFile csvFile = CsvFileDal.AddCsvFile(file, db);
 
-                ViewBag.Message = "File Uploaded Successfully!! " + result;
-                return View(dal.GetFiles());
+                        if (ModelState.IsValid)
+                        {
+                            db.SaveChanges();
+                        }
+
+                        status.AppendFormat("File [{0}] is uploaded successfully! ", file.FileName);
+
+                        IEnumerable<string> result = DirectedGraphUtil.ShortestPath(csvFile.CsvRecords.ToList());
+                        if (result != null)
+                        {
+                            status.AppendFormat(" The shortest path in the grapth is {0}", string.Join("->", result));
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        status.AppendFormat("File [{0}] failed to upload due to {1} ", file.FileName, e.Message);
+                    }
+                }
             }
-            catch (Exception e)
+            else
             {
-                ViewBag.Message = "File upload failed: " + e.ToString();
-                return View();
+                status.Append("File upload failed: Error: no file is chosen to upload.");
             }
+
+            ViewBag.Message = status.ToString();
+            return View(db.CsvFiles);
         }
     }
 }

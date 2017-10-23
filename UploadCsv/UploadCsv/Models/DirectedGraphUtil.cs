@@ -7,26 +7,28 @@ namespace UploadCsv.Models
 {
     public class DirectedGraphUtil
     {
-        public static bool DirectedGraphHasCycle(string csvContent)
+        public static IEnumerable<string> DirectedGraphHasCycle(IList<CsvRecord> records)
         {
             DirectedGraph graph = new DirectedGraph();
 
-            string[] lines = csvContent.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-            foreach (string line in lines)
+            foreach (CsvRecord record in records)
             {
-                if (line.IndexOf("Parent", StringComparison.OrdinalIgnoreCase) >= 0)
-                {
-                    continue;
-                }
-                string[] elements = line.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries);
-                if (elements.Length == 3)
-                {
-                    graph.AddEdge(elements[0], elements[1]);
-                }
+                graph.AddEdge(record.Parent, record.Child);
             }
 
-            bool b = graph.IsCyclic();
-            return b;
+            return graph.CyclicPath();
+        }
+
+        public static IEnumerable<string> ShortestPath (IList<CsvRecord> records)
+        {
+            DirectedGraph graph = new DirectedGraph();
+
+            foreach (CsvRecord record in records)
+            {
+                graph.AddEdge(record.Parent, record.Child);
+            }
+
+            return graph.ShortestPath();
         }
     }
 }

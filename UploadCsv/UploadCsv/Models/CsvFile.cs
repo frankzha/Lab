@@ -7,26 +7,24 @@ namespace UploadCsv.Models
 {
     public class CsvFile
     {
-        public int Id { get; }
+        public int Id { get; set; }
         public string FileName { get; set; }
         public string ContentType { get; set; }
-        public DateTime LastModified { get; }
+        public DateTime LastModified { get; set; }
         public byte[] FileContent { get; private set; }
 
-        public CsvFile (int id, string fileName, string contentType, DateTime lastModified)
+        public ICollection<CsvRecord> CsvRecords { get; set; }
+
+        public CsvFile()
         {
-            this.Id = id;
-            this.FileName = fileName;
-            this.ContentType = contentType;
-            this.LastModified = lastModified;
+
         }
 
-        public CsvFile (string fileName, string contentType, byte[] fileContent)
+        public CsvFile(string fileName, string contentType)
         {
             this.FileName = fileName;
             this.ContentType = contentType;
-            this.FileContent = new byte[fileContent.Length];
-            Array.Copy(fileContent, FileContent, fileContent.Length);
+            this.LastModified = DateTime.UtcNow;
         }
     }
 }
