@@ -1,0 +1,42 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+<!--div class="jumbotron">
+    <h1>ASP.NET</h1>
+    <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
+    <p><a href="https://asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
+</div-->
+
+<div class="row">
+    <div class="col-sm-7 col-md-6">
+        <h2>Welcome. Let's go somewhere.</h2>
+		<h4>On sale now! The price is flat regardless of departure date or return date!</h4>
+		@using (Html.BeginForm("FindFlights", "Home", FormMethod.Post))
+		{
+			<div class="row">
+				<label id="errorLabel" class="alert-warning">@ViewBag.Message</label>
+			</div>
+			<div class="row">
+				<div class="form-group col-xs-6 left-xs left-sm left-md left-lg">
+					<label for="fromCity" class="cityLabel">
+						From
+					</label>
+					<input type="text" class="form-control fromCity" id="fromCity" name="DepartureCity" aria-required="true" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="60">
+				</div>
+
+				<div class="form-group col-xs-6 right-xs right-sm right-md right-lg">
+					<label for="toCity" class="cityLabel">
+						To
+					</label>
+					<input type="text" class="form-control toCity" id="toCity" name="ArrivalCity" aria-required="true" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="60">
+				</div>
+			</div>
+			<div class="row">
+				<div class="form-group col-sm-6 right-sm right-md right-lg">
+					<input type="submit" id="findFlights" value="FIND FLIGHTS" class="btn btn-green btn-block" data-omniture-tag="home-page:formlet::findflights">
+				</div>
+			</div>
+		}
+	</div>
+</div>

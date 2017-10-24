@@ -1,0 +1,151 @@
+﻿@model IEnumerable<AlaskaAir.Models.Flight>
+
+@{
+	ViewBag.Title = "FindFlights";
+	if (string.IsNullOrEmpty(ViewBag.SortBy))
+	{
+		ViewBag.SortBy = "MainCabinPrice";
+	}
+	if (string.IsNullOrEmpty(ViewBag.SortDirection))
+	{
+		ViewBag.SortDirection = "ASC";
+	}
+}
+
+<div class="row">
+	<div class="col-sm-7 col-md-6">
+		<h2>Welcome. Let's go somewhere.</h2>
+		@using (Html.BeginForm("FindFlights", "Home", FormMethod.Post))
+		{
+			<input name="SortBy" id="sortBy" type="hidden" value="@ViewBag.SortBy" />
+			<input name="SortDirection" id="sortDirection" type="hidden" value="@ViewBag.SortDirection" />
+			<div class="row">
+				<div class="form-group col-xs-12 error">
+					<ul>
+						@if (ViewBag.Errors != null && ViewBag.Errors.Count > 0)
+						{
+							foreach (string error in ViewBag.Errors)
+							{
+								<li>@error</li>
+							}
+						}
+					</ul>
+				</div>
+			</div>
+			<div class="row">
+				<div class="form-group col-xs-6 left-xs left-sm left-md left-lg">
+					<label for="fromCity" class="cityLabel">From City</label>
+					<input type="text" class="form-control fromCity" id="fromCity" name="DepartureCity" aria-required="true" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="60" value="@ViewBag.DepartureAirport">
+				</div>
+
+				<div class="form-group col-xs-6 right-xs right-sm right-md right-lg">
+					<label for="toCity" class="cityLabel">To City</label>
+					<input type="text" class="form-control toCity" id="toCity" name="ArrivalCity" aria-required="true" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="60" value="@ViewBag.ArrivalAirport">
+				</div>
+			</div>
+			<div class="row">
+				<div class="form-group col-sm-6 right-sm right-md right-lg">
+					<input type="submit" id="findFlights" value="FIND FLIGHTS" class="btn btn-green btn-block" data-omniture-tag="home-page:formlet::findflights">
+				</div>
+			</div>
+		}
+	</div>
+</div>
+
+@if (Model != null && Model.Count() > 0)
+{
+	<hr />
+	<h2>Flights search result:</h2>
+
+	<table class="table">
+		<tr>
+			<th>
+				@Html.DisplayNameFor(model => model.From)
+			</th>
+			<th>
+				@Html.DisplayNameFor(model => model.To)
+			</th>
+			<th>
+				@Html.DisplayNameFor(model => model.FlightNumber)
+			</th>
+			<th>
+				<a href="javascript:;" onclick="FindFlights('Departs')">@Html.DisplayNameFor(model => model.Departs)</a>
+				@if (@ViewBag.SortBy == "Departs" && @ViewBag.SortDirection == "ASC")
+				{
+					<span class="glyphicon glyphicon-sort-by-order" />
+				}
+				else if (@ViewBag.SortBy == "Departs" && @ViewBag.SortDirection == "DSC")
+				{
+					<span class="glyphicon glyphicon-sort-by-order-alt" />
+				}
+			</th>
+			<th>
+				@Html.DisplayNameFor(model => model.Arrives)
+			</th>
+			<th>
+				<a href="javascript:;" onclick="FindFlights('MainCabinPrice')">@Html.DisplayNameFor(model => model.MainCabinPrice)</a>
+				@if (@ViewBag.SortBy == "MainCabinPrice" && @ViewBag.SortDirection == "ASC")
+				{
+					<span class="glyphicon glyphicon-sort-by-order" />
+				}
+				else if (@ViewBag.SortBy == "MainCabinPrice" && @ViewBag.SortDirection == "DSC")
+				{
+					<span class="glyphicon glyphicon-sort-by-order-alt" />
+				}
+			</th>
+			<th>
+				@Html.DisplayNameFor(model => model.FirstClassPrice)
+			</th>
+			<th></th>
+		</tr>
+
+		@foreach (var item in Model)
+		{
+			<tr>
+				<td>
+					@Html.DisplayFor(modelItem => item.From)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.To)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.FlightNumber)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.Departs)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.Arrives)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.MainCabinPrice)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.FirstClassPrice)
+				</td>
+			</tr>
+		}
+
+	</table>
+}
+
+<script src="~/Scripts/jquery-1.10.2.min.js"></script>
+<script type="text/javascript">
+	function FindFlights(sortBy) {
+		if ($("#sortBy").val() == sortBy) {
+			if ($("#sortDirection").val() == "ASC") {
+				$("#sortDirection").val("DSC");
+			}
+			else {
+				$("#sortDirection").val("ASC");
+			}
+		}
+		else
+		{
+			$("#sortBy").val(sortBy);
+			$("#sortDirection").val("ASC");
+		}
+
+		$("#findFlights")[0].click();
+	};
+</script>
