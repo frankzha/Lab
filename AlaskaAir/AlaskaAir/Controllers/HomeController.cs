@@ -107,5 +107,26 @@ namespace AlaskaAir.Controllers
             }
             return View(flights);
         }
+
+        [HttpGet]
+        public ActionResult FindFlightsForWebApi(string departureCity, string arrivalCity)
+        {
+            IEnumerable<Flight> flights = new List<Flight>();
+
+            IList<string> errors = new List<string>();
+
+            Airport departureAirport = this.FindAirport(departureCity, errors);
+            Airport arrivalAirport = this.FindAirport(arrivalCity, errors);
+
+            if (errors.Count == 0)
+            {
+                // now search flights
+                flights = airline.Flights.Where(
+                    f => string.Equals(f.From, departureAirport.Code, StringComparison.OrdinalIgnoreCase)
+                        && string.Equals(f.To, arrivalAirport.Code, StringComparison.OrdinalIgnoreCase));
+            }
+
+            return Json(flights, JsonRequestBehavior.AllowGet);
+        }
     }
 }

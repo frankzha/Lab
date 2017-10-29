@@ -49,6 +49,8 @@ namespace AlaskaAir.Models
                 while (reader.Read())
                 {
                     Flight record = reader.GetRecord<Flight>();
+                    record.Departs = DateTime.Parse(record.Departs).ToString("HH:mm");
+                    record.Arrives = DateTime.Parse(record.Arrives).ToString("HH:mm");
                     Flights.Add(record);
                 }
             }
